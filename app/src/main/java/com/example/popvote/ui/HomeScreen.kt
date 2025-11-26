@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Image
@@ -36,7 +37,8 @@ import com.example.popvote.viewmodel.PopVoteViewModel
 fun HomeScreen(
     viewModel: PopVoteViewModel,
     onNavigateToGenre: (String) -> Unit,
-    onNavigateToRanking: () -> Unit
+    onNavigateToRanking: () -> Unit,
+    onNavigateToStatistics: () -> Unit
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
 
@@ -53,6 +55,12 @@ fun HomeScreen(
                     IconButton(onClick = onNavigateToRanking) {
                         Icon(Icons.Default.EmojiEvents, contentDescription = "Ranking", tint = Color.Yellow)
                     }
+
+                    // Statistics-Button
+                    IconButton(onClick = onNavigateToStatistics) {
+                        Icon(Icons.Default.BarChart, contentDescription = "Statistics", tint = Color.Green)
+                    }
+
                 }
             )
         },
