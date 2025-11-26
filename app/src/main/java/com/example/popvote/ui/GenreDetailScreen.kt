@@ -112,7 +112,7 @@ fun FilmCard(film: Film, onDelete: () -> Unit) {
                 Text(film.title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Text(film.description, fontSize = 14.sp, color = Color.Gray, maxLines = 2)
 
-                // valutation with stars
+                // valuation with stars
                 Row {
                     repeat(5) { index ->
                         Icon(

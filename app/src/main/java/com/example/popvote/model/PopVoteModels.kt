@@ -17,5 +17,6 @@ data class Film(
     val title: String,
     val description: String,
     val rating: Int, // from 1 to 5
+    val lengthMinutes: Int,
     val imageUri: Uri? = null // film photo
 )

@@ -17,8 +17,8 @@ class PopVoteViewModel : ViewModel() {
     init {
 
         _genres.add(Genre(name = "Horror", films = mutableListOf(
-            Film(title = "The Ghost", description = "Very scary movie", rating = 4),
-            Film(title = "Zombies", description = "They eat brains", rating = 3)
+            Film(title = "The Ghost", description = "Very scary movie", rating = 4, lengthMinutes= 110),
+            Film(title = "Zombies", description = "They eat brains", rating = 3, lengthMinutes= 120)
         )))
         _genres.add(Genre(name = "Fantasy"))
     }
@@ -36,7 +36,7 @@ class PopVoteViewModel : ViewModel() {
     fun addFilmToGenre(genreId: String, title: String, description: String, rating: Int, imageUri: Uri?) {
         val genre = _genres.find { it.id == genreId }
         genre?.films?.add(
-            Film(title = title, description = description, rating = rating, imageUri = imageUri)
+            Film(title = title, description = description, rating = rating, lengthMinutes = 115, imageUri = imageUri)
         )
     }
 
