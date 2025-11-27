@@ -72,8 +72,7 @@ fun PopVoteApp() {
         }
         composable("statistics") {
             StatisticsScreen(
-                viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                viewModel = viewModel
             )
         }
     }
