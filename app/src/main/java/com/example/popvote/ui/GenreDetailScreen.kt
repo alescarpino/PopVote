@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -23,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -75,8 +77,8 @@ fun GenreDetailScreen(
     if (showAddFilmDialog) {
         AddFilmDialog(
             onDismiss = { showAddFilmDialog = false },
-            onConfirm = { title, desc, rating, uri ->
-                viewModel.addFilmToGenre(genreId, title, desc, rating, uri)
+            onConfirm = { title, desc, rating,duration, uri ->
+                viewModel.addFilmToGenre(genreId, title, desc, rating,duration,uri)
                 showAddFilmDialog = false
             }
         )
@@ -133,10 +135,11 @@ fun FilmCard(film: Film, onDelete: () -> Unit) {
 }
 
 @Composable
-fun AddFilmDialog(onDismiss: () -> Unit, onConfirm: (String, String, Int, Uri?) -> Unit) {
+fun AddFilmDialog(onDismiss: () -> Unit, onConfirm: (String, String, Int,Int, Uri?) -> Unit) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var rating by remember { mutableStateOf(3) } // Default 3 stelle
+    var rating by remember { mutableStateOf(3) } // Default 3 star
+    var durationString by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
@@ -150,8 +153,11 @@ fun AddFilmDialog(onDismiss: () -> Unit, onConfirm: (String, String, Int, Uri?) 
             Column {
                 OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title") })
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") })
+                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
                 Spacer(modifier = Modifier.height(8.dp))
+
 
                 Text("Rating: $rating/5")
                 Slider(
@@ -167,7 +173,10 @@ fun AddFilmDialog(onDismiss: () -> Unit, onConfirm: (String, String, Int, Uri?) 
             }
         },
         confirmButton = {
-            Button(onClick = { if(title.isNotEmpty()) onConfirm(title, description, rating, selectedImageUri) }) {
+            Button(onClick = { val duration = durationString.toIntOrNull() ?: 0
+                if(title.isNotEmpty()){ onConfirm(title, description, rating, duration, selectedImageUri)
+            }
+            }) {
                 Text("Save")
             }
         },

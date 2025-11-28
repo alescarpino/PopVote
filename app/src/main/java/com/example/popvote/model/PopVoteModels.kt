@@ -20,3 +20,8 @@ data class Film(
     val lengthMinutes: Int,
     val imageUri: Uri? = null // film photo
 )
+// Container class in which we save all the datas in a JSON file
+data class AppData(
+    val genres: List<Genre>,
+    val wishlist: List<Film>
+)
