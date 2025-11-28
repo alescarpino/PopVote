@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -23,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -85,7 +87,7 @@ fun GenreDetailScreen(
         AddFilmDialog(
             onDismiss = { showAddFilmDialog = false },
             onConfirm = { title, desc, genre, rating, uri ->
-                viewModel.addFilmToFolder(folderId, title, desc, genre, rating, uri)
+                viewModel.addFilmToFolder(folderId, title, desc, genre, rating, duration, uri)
                 showAddFilmDialog = false
             }
         )
@@ -174,6 +176,7 @@ fun AddFilmDialog(
     var description by remember { mutableStateOf("") }
     var selectedGenre by remember { mutableStateOf(Genre.ACTION) }
     var rating by remember { mutableStateOf(3) } // Default: 3 Sterne
+    var durationString by remember { mutableStateOf("")
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var genreMenuExpanded by remember { mutableStateOf(false) }
 
@@ -192,10 +195,8 @@ fun AddFilmDialog(
                     label = { Text("Title") }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description") }
+                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -229,7 +230,7 @@ fun AddFilmDialog(
                         }
                     }
                 }
-                // --- Ende Genre Dropdown ---
+                // --- End Genre Dropdown ---
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Rating: $rating/5")
@@ -257,6 +258,9 @@ fun AddFilmDialog(
                 if (title.isNotEmpty()) {
                     onConfirm(title, description, selectedGenre, rating, selectedImageUri)
                 }
+            Button(onClick = { val duration = durationString.toIntOrNull() ?: 0
+                if(title.isNotEmpty()){ onConfirm(title, description, rating, duration, selectedImageUri)
+            }
             }) {
                 Text("Save")
             }

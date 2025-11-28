@@ -29,3 +29,8 @@ enum class Genre {
     ROMANCE,
     DOCUMENTARY
 }
+// Container class in which we save all the datas in a JSON file
+data class AppData(
+    val genres: List<Genre>,
+    val wishlist: List<Film>
+)
