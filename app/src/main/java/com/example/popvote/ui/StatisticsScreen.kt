@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,7 +19,7 @@ import com.example.popvote.viewmodel.PopVoteViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatisticsScreen(viewModel: PopVoteViewModel, onBack: () -> Unit) {
-    val genres = viewModel.genres
+    val genres = viewModel.folders
     val logic = StatisticsLogic()
 
     val mostWatchedGenre = logic.getMostWatchedGenre(genres)

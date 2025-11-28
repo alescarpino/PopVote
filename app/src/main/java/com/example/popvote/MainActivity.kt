@@ -53,10 +53,10 @@ fun PopVoteApp() {
 
         //  detailed genres screen
         composable("genre/{genreId}") { backStackEntry ->
-            val genreId = backStackEntry.arguments?.getString("genreId")
-            if (genreId != null) {
+            val folderId = backStackEntry.arguments?.getString("genreId")
+            if (folderId != null) {
                 GenreDetailScreen(
-                    genreId = genreId,
+                    folderId = folderId,
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() }
                 )
