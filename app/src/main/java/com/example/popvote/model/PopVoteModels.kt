@@ -5,18 +5,27 @@ import java.util.UUID
 
 // data structure classes
 
-data class Genre(
+data class Folder(
     val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val imageUri: Uri? = null, // genre photo
+    val imageUri: Uri? = null, // folder photo
     val films: MutableList<Film> = mutableListOf()
 )
-
 data class Film(
     val id: String = UUID.randomUUID().toString(),
     val title: String,
     val description: String,
+    val genre: Genre, // Dropdown
     val rating: Int, // from 1 to 5
     val lengthMinutes: Int,
     val imageUri: Uri? = null // film photo
 )
+enum class Genre {
+    ACTION,
+    COMEDY,
+    DRAMA,
+    HORROR,
+    SCI_FI,
+    ROMANCE,
+    DOCUMENTARY
+}

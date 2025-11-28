@@ -1,3 +1,4 @@
+
 package com.example.popvote.ui
 
 import android.net.Uri
@@ -12,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
@@ -27,19 +27,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.popvote.model.Film
+import com.example.popvote.model.Genre
 import com.example.popvote.viewmodel.PopVoteViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenreDetailScreen(
-    genreId: String,
+    folderId: String,
     viewModel: PopVoteViewModel,
     onBack: () -> Unit
 ) {
-    val genre = viewModel.getGenre(genreId)
+    val folder = viewModel.getFolder(folderId)
     var showAddFilmDialog by remember { mutableStateOf(false) }
 
-    if (genre == null) {
+    if (folder == null) {
         Text("Genre not found")
         return
     }
@@ -47,7 +48,7 @@ fun GenreDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(genre.name) },
+                title = { Text(folder.name) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -57,17 +58,25 @@ fun GenreDetailScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddFilmDialog = true }, containerColor = Color(0xFF03DAC5)) {
+            FloatingActionButton(
+                onClick = { showAddFilmDialog = true },
+                containerColor = Color(0xFF03DAC5)
+            ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Film")
             }
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.padding(padding).padding(16.dp),
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(genre.films) { film ->
-                FilmCard(film = film, onDelete = { viewModel.deleteFilmFromGenre(genreId, film) })
+            items(folder.films) { film ->
+                FilmCard(
+                    film = film,
+                    onDelete = { viewModel.deleteFilmFromFolder(folderId, film) }
+                )
             }
         }
     }
@@ -75,8 +84,8 @@ fun GenreDetailScreen(
     if (showAddFilmDialog) {
         AddFilmDialog(
             onDismiss = { showAddFilmDialog = false },
-            onConfirm = { title, desc, rating, uri ->
-                viewModel.addFilmToGenre(genreId, title, desc, rating, uri)
+            onConfirm = { title, desc, genre, rating, uri ->
+                viewModel.addFilmToFolder(folderId, title, desc, genre, rating, uri)
                 showAddFilmDialog = false
             }
         )
@@ -84,7 +93,10 @@ fun GenreDetailScreen(
 }
 
 @Composable
-fun FilmCard(film: Film, onDelete: () -> Unit) {
+fun FilmCard(
+    film: Film,
+    onDelete: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(2.dp),
@@ -94,25 +106,45 @@ fun FilmCard(film: Film, onDelete: () -> Unit) {
             modifier = Modifier.padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // film image
+            // Film Cover
             if (film.imageUri != null) {
                 AsyncImage(
                     model = film.imageUri,
                     contentDescription = "Cover",
-                    modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)),
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(8.dp)),
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Surface(modifier = Modifier.size(80.dp), color = Color.LightGray, shape = RoundedCornerShape(8.dp)) {}
+                Surface(
+                    modifier = Modifier.size(80.dp),
+                    color = Color.LightGray,
+                    shape = RoundedCornerShape(8.dp)
+                ) {}
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(film.title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text(film.description, fontSize = 14.sp, color = Color.Gray, maxLines = 2)
+                Text(
+                    film.description,
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    maxLines = 2
+                )
 
-                // valuation with stars
+                // Genre-Anzeige
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Genre: ${film.genre.name}",
+                    fontSize = 12.sp,
+                    color = Color(0xFF6D6D6D)
+                )
+
+                // Bewertung mit Sternen
+                Spacer(modifier = Modifier.height(4.dp))
                 Row {
                     repeat(5) { index ->
                         Icon(
@@ -132,12 +164,18 @@ fun FilmCard(film: Film, onDelete: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddFilmDialog(onDismiss: () -> Unit, onConfirm: (String, String, Int, Uri?) -> Unit) {
+fun AddFilmDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String, String, Genre, Int, Uri?) -> Unit
+) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var rating by remember { mutableStateOf(3) } // Default 3 stelle
+    var selectedGenre by remember { mutableStateOf(Genre.ACTION) }
+    var rating by remember { mutableStateOf(3) } // Default: 3 Sterne
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var genreMenuExpanded by remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -148,11 +186,52 @@ fun AddFilmDialog(onDismiss: () -> Unit, onConfirm: (String, String, Int, Uri?) 
         title = { Text("New Film") },
         text = {
             Column {
-                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title") })
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Title") }
+                )
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") })
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description") }
+                )
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // --- Genre Dropdown ---
+                ExposedDropdownMenuBox(
+                    expanded = genreMenuExpanded,
+                    onExpandedChange = { genreMenuExpanded = !genreMenuExpanded }
+                ) {
+                    OutlinedTextField(
+                        readOnly = true,
+                        value = selectedGenre.name,
+                        onValueChange = {},
+                        label = { Text("Genre") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = genreMenuExpanded)
+                        },
+                        modifier = Modifier.menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = genreMenuExpanded,
+                        onDismissRequest = { genreMenuExpanded = false }
+                    ) {
+                        Genre.entries.forEach { genre ->
+                            DropdownMenuItem(
+                                text = { Text(genre.name) },
+                                onClick = {
+                                    selectedGenre = genre
+                                    genreMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+                // --- Ende Genre Dropdown ---
+
+                Spacer(modifier = Modifier.height(8.dp))
                 Text("Rating: $rating/5")
                 Slider(
                     value = rating.toFloat(),
@@ -161,16 +240,29 @@ fun AddFilmDialog(onDismiss: () -> Unit, onConfirm: (String, String, Int, Uri?) 
                     steps = 3
                 )
 
-                Button(onClick = { launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        launcher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    }
+                ) {
                     Text(if (selectedImageUri == null) "Pick Poster" else "Poster Selected")
                 }
             }
         },
         confirmButton = {
-            Button(onClick = { if(title.isNotEmpty()) onConfirm(title, description, rating, selectedImageUri) }) {
+            Button(onClick = {
+                if (title.isNotEmpty()) {
+                    onConfirm(title, description, selectedGenre, rating, selectedImageUri)
+                }
+            }) {
                 Text("Save")
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
     )
 }

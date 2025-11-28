@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
@@ -22,14 +20,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.popvote.model.Genre
+import com.example.popvote.model.Folder
 import com.example.popvote.viewmodel.PopVoteViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,7 +71,7 @@ fun HomeScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            if (viewModel.genres.isEmpty()) {
+            if (viewModel.folders.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("No genres yet. Add one!", color = Color.Gray)
                 }
@@ -85,11 +82,11 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(viewModel.genres) { genre ->
+                    items(viewModel.folders) { genre ->
                         GenreCard(
-                            genre = genre,
+                            folder = genre,
                             onClick = { onNavigateToGenre(genre.id) },
-                            onDelete = { viewModel.deleteGenre(genre) }
+                            onDelete = { viewModel.deleteFolder(genre) }
                         )
                     }
                 }
@@ -101,7 +98,7 @@ fun HomeScreen(
         AddGenreDialog(
             onDismiss = { showAddDialog = false },
             onConfirm = { name, uri ->
-                viewModel.addGenre(name, uri)
+                viewModel.addFolder(name, uri)
                 showAddDialog = false
             }
         )
@@ -109,7 +106,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun GenreCard(genre: Genre, onClick: () -> Unit, onDelete: () -> Unit) {
+fun GenreCard(folder: Folder, onClick: () -> Unit, onDelete: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -120,9 +117,9 @@ fun GenreCard(genre: Genre, onClick: () -> Unit, onDelete: () -> Unit) {
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Immagine di sfondo o colore default
-            if (genre.imageUri != null) {
+            if (folder.imageUri != null) {
                 AsyncImage(
-                    model = genre.imageUri,
+                    model = folder.imageUri,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -139,10 +136,10 @@ fun GenreCard(genre: Genre, onClick: () -> Unit, onDelete: () -> Unit) {
 
             // Nome Genere
             Text(
-                text = genre.name,
+                text = folder.name,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (genre.imageUri != null) Color.White else Color.Black,
+                color = if (folder.imageUri != null) Color.White else Color.Black,
                 modifier = Modifier
                     .align(Alignment.Center)
             )
