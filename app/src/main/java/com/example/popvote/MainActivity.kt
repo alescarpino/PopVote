@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.popvote.ui.GenreDetailScreen
 import com.example.popvote.ui.HomeScreen
 import com.example.popvote.ui.RankingScreen
+import com.example.popvote.ui.StatisticsScreen
 import com.example.popvote.viewmodel.PopVoteViewModel
 
 class MainActivity : ComponentActivity() {
@@ -45,7 +46,8 @@ fun PopVoteApp() {
             HomeScreen(
                 viewModel = viewModel,
                 onNavigateToGenre = { genreId -> navController.navigate("genre/$genreId") },
-                onNavigateToRanking = { navController.navigate("ranking") }
+                onNavigateToRanking = { navController.navigate("ranking") },
+                onNavigateToStatistics = { navController.navigate("statistics") },
             )
         }
 
@@ -64,6 +66,12 @@ fun PopVoteApp() {
         // ranking screen
         composable("ranking") {
             RankingScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable("statistics") {
+            StatisticsScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() }
             )
