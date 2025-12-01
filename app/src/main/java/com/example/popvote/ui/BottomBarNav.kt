@@ -37,7 +37,6 @@ fun BottomBarNav(
         BottomNavItem("Add", Icons.Filled.AddCircle, "add")
     )
 
-    // ✅ aktuelle Route beobachten (reagiert auf Navigation)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "library"
 
@@ -47,16 +46,15 @@ fun BottomBarNav(
 
             NavigationBarItem(
                 icon = {
-                    // ✅ Hintergrund + Schatten beim aktiven Icon
                     Icon(
                         imageVector = item.icon,
                         contentDescription = item.label,
                         modifier = if (selected) {
                             Modifier
                                 .clip(MaterialTheme.shapes.small)
-                                .background(Color(0xFFE8EAF6)) // leichtes helles Lila/Gray
-                                .shadow(6.dp, MaterialTheme.shapes.small)
-                                .padding(8.dp)
+                                .background(Color(0xFFE8EAF6))
+                                .shadow(3.dp, MaterialTheme.shapes.small)
+                                .padding(2.dp)
                         } else {
                             Modifier
                         }
@@ -66,15 +64,10 @@ fun BottomBarNav(
                 selected = selected,
                 onClick = {
                     if (item.route == "add") {
-                        // ✅ Add nur im Library-Tab aktiv
                         if (currentRoute == "library") {
                             onAddClick()
-                        } else {
-                            // Optional: Snackbar/Toast einbauen
-                            // println("Add ist nur im Library-Tab verfügbar")
                         }
                     } else {
-                        // ✅ Navigation zum Ziel-Tab
                         navController.navigate(item.route) {
                             popUpTo(navController.graph.startDestinationId) { saveState = true }
                             launchSingleTop = true
@@ -87,7 +80,6 @@ fun BottomBarNav(
                     selectedTextColor = Color.Black,
                     unselectedIconColor = Color.Gray,
                     unselectedTextColor = Color.Gray,
-                    // Wir nutzen eigenen Hintergrund → Indikator transparent
                     indicatorColor = Color.Transparent
                 )
             )
