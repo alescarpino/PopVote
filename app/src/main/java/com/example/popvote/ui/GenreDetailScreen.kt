@@ -34,7 +34,7 @@ import com.example.popvote.viewmodel.PopVoteViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GenreDetailScreen(
+fun FolderDetailScreen(
     folderId: String,
     viewModel: PopVoteViewModel,
     onBack: () -> Unit
@@ -86,7 +86,7 @@ fun GenreDetailScreen(
     if (showAddFilmDialog) {
         AddFilmDialog(
             onDismiss = { showAddFilmDialog = false },
-            onConfirm = { title, desc, genre, rating, uri ->
+            onConfirm = { title, desc, genre, rating, duration, uri ->
                 viewModel.addFilmToFolder(folderId, title, desc, genre, rating, duration, uri)
                 showAddFilmDialog = false
             }
@@ -166,17 +166,18 @@ fun FilmCard(
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddFilmDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String, String, Genre, Int, Uri?) -> Unit
+    onConfirm: (String, String, Genre, Int, Int, Uri?) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedGenre by remember { mutableStateOf(Genre.ACTION) }
-    var rating by remember { mutableStateOf(3) } // Default: 3 Sterne
-    var durationString by remember { mutableStateOf("")
+    var rating by remember { mutableStateOf(3) }
+    var durationText by remember { mutableStateOf("115") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var genreMenuExpanded by remember { mutableStateOf(false) }
 
@@ -189,84 +190,60 @@ fun AddFilmDialog(
         title = { Text("New Film") },
         text = {
             Column {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Title") }
-                )
+                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title") })
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
+                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") })
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // --- Genre Dropdown ---
-                ExposedDropdownMenuBox(
-                    expanded = genreMenuExpanded,
-                    onExpandedChange = { genreMenuExpanded = !genreMenuExpanded }
-                ) {
+                // Genre Dropdown
+                ExposedDropdownMenuBox(expanded = genreMenuExpanded, onExpandedChange = { genreMenuExpanded = !genreMenuExpanded }) {
                     OutlinedTextField(
                         readOnly = true,
                         value = selectedGenre.name,
                         onValueChange = {},
                         label = { Text("Genre") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = genreMenuExpanded)
-                        },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genreMenuExpanded) },
                         modifier = Modifier.menuAnchor()
                     )
-                    ExposedDropdownMenu(
-                        expanded = genreMenuExpanded,
-                        onDismissRequest = { genreMenuExpanded = false }
-                    ) {
+                    ExposedDropdownMenu(expanded = genreMenuExpanded, onDismissRequest = { genreMenuExpanded = false }) {
                         Genre.entries.forEach { genre ->
-                            DropdownMenuItem(
-                                text = { Text(genre.name) },
-                                onClick = {
-                                    selectedGenre = genre
-                                    genreMenuExpanded = false
-                                }
-                            )
+                            DropdownMenuItem(text = { Text(genre.name) }, onClick = {
+                                selectedGenre = genre
+                                genreMenuExpanded = false
+                            })
                         }
                     }
                 }
-                // --- End Genre Dropdown ---
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Rating: $rating/5")
-                Slider(
-                    value = rating.toFloat(),
-                    onValueChange = { rating = it.toInt() },
-                    valueRange = 1f..5f,
-                    steps = 3
+                Slider(value = rating.toFloat(), onValueChange = { rating = it.toInt() }, valueRange = 1f..5f, steps = 3)
+
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = durationText,
+                    onValueChange = { durationText = it.filter { ch -> ch.isDigit() } },
+                    label = { Text("Duration (minutes)") },
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = {
-                        launcher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    }
-                ) {
+                Button(onClick = { launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
                     Text(if (selectedImageUri == null) "Pick Poster" else "Poster Selected")
                 }
             }
         },
         confirmButton = {
             Button(onClick = {
-                if (title.isNotEmpty()) {
-                    onConfirm(title, description, selectedGenre, rating, selectedImageUri)
+                val duration = durationText.toIntOrNull() ?: 0
+                if (title.isNotEmpty() && duration > 0) {
+                    onConfirm(title, description, selectedGenre, rating, duration, selectedImageUri)
                 }
-            Button(onClick = { val duration = durationString.toIntOrNull() ?: 0
-                if(title.isNotEmpty()){ onConfirm(title, description, rating, duration, selectedImageUri)
-            }
             }) {
                 Text("Save")
             }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
+

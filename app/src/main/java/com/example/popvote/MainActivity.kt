@@ -12,7 +12,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.popvote.ui.GenreDetailScreen
+import com.example.popvote.ui.FolderDetailScreen
 import com.example.popvote.ui.HomeScreen
 import com.example.popvote.ui.RankingScreen
 import com.example.popvote.ui.StatisticsScreen
@@ -55,7 +55,7 @@ fun PopVoteApp() {
         composable("genre/{genreId}") { backStackEntry ->
             val folderId = backStackEntry.arguments?.getString("genreId")
             if (folderId != null) {
-                GenreDetailScreen(
+                FolderDetailScreen(
                     folderId = folderId,
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() }

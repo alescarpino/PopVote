@@ -17,7 +17,7 @@ data class Film(
     val description: String,
     val genre: Genre, // Dropdown
     val rating: Int, // from 1 to 5
-    val lengthMinutes: Int,
+    val duration: Int,
     val imageUri: Uri? = null // film photo
 )
 enum class Genre {
@@ -31,6 +31,6 @@ enum class Genre {
 }
 // Container class in which we save all the datas in a JSON file
 data class AppData(
-    val genres: List<Genre>,
+    val genres: List<Folder>,
     val wishlist: List<Film>
 )
