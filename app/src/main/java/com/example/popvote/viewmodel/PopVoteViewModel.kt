@@ -103,6 +103,11 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
             .sortedByDescending { it.rating }
     }
 
+    fun getAllFilmsAlphabetical(): List<Film> {
+        return _folders.flatMap { it.films }
+            .sortedBy { it.title.lowercase() }
+    }
+
     fun getFolder(id: String): Folder? {
         return _folders.find { it.id == id }
     }
