@@ -19,16 +19,23 @@ import com.example.popvote.viewmodel.PopVoteViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatisticsScreen(viewModel: PopVoteViewModel, onBack: () -> Unit) {
-    val genres = viewModel.folders
+    val folders = viewModel.folders
     val logic = StatisticsLogic()
 
-    val mostWatchedGenre = logic.getMostWatchedGenre(genres)
-    val totalMinutes = logic.getTotalMinutesWatched(genres)
+    val mostWatchedGenre = logic.getMostWatchedGenre(folders)
+    val mostWatchedCount = if (mostWatchedGenre != null) {
+        folders
+            .flatMap { it.films }
+            .count { it.genre == mostWatchedGenre } // **CHANGED**
+    } else 0
+    val totalMinutes = logic.getTotalMinutesWatched(folders)
 
     val stats = listOf(
         "Total Minutes Watched " to "$totalMinutes",
-        "Most Watched Genre " to (mostWatchedGenre?.name ?: "No data") +
-                if (mostWatchedGenre != null) " (${mostWatchedGenre.films.size} films)" else ""
+        "Most Watched Genre" to (
+                if (mostWatchedGenre != null) "${" " + mostWatchedGenre.name} ($mostWatchedCount films)"
+                else "No data"
+        )
     )
 
     Scaffold(
