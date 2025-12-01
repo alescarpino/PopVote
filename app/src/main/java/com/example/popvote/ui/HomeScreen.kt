@@ -28,6 +28,13 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.popvote.model.Folder
 import com.example.popvote.viewmodel.PopVoteViewModel
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+
+
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +45,7 @@ fun HomeScreen(
     onNavigateToStatistics: () -> Unit
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
-
+    val tabNavController = rememberNavController()
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -61,15 +68,26 @@ fun HomeScreen(
                 }
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddDialog = true },
-                containerColor = Color(0xFF03DAC5)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Genre")
-            }
+
+        bottomBar = {
+            BottomBarNav(
+                navController = tabNavController,
+                onAddClick = { showAddDialog = true } // opens Add-Dialog
+            )
+        },
+
+        ) { padding ->
+        NavHost(
+            navController = tabNavController,
+            startDestination = "library",
+            modifier = Modifier.padding(padding )
+        )
+        {
+            composable("library") { /* Library-Inhalt */ }
+            composable("all_films") { /* Platzhalter */ }
+            composable("wishlist") { /* Platzhalter */ }
         }
-    ) { padding ->
+
         Column(modifier = Modifier.padding(padding)) {
             if (viewModel.folders.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
