@@ -15,8 +15,8 @@ class StorageManager(private val context: Context) {
     private val fileName = "popvote_data.json"
     // saving datas
 
-    fun saveAll(genres: List<Folder>, wishlist:List<Film>) {
-        val appData = AppData(genres,wishlist)
+    fun saveAll(folders: List<Folder>, allFilms: List<Film>,wishlist:List<Film>) {
+        val appData = AppData(folders, allFilms, wishlist)
         val jsonString = gson.toJson(appData)
 
         // Scriviamo il file nella memoria privata dell'app
@@ -25,20 +25,21 @@ class StorageManager(private val context: Context) {
         }
     }
 
-    // Loading data
-    fun loadAll(): AppData? {
+
+    fun loadAll(): AppData {
         val file = File(context.filesDir, fileName)
-        if (!file.exists()) return null
+        if (!file.exists()) return AppData(emptyList(), emptyList(), emptyList())
 
         return try {
             val jsonString = context.openFileInput(fileName).bufferedReader().use { it.readText() }
             val type = object : TypeToken<AppData>() {}.type
-            gson.fromJson(jsonString, type)
+            gson.fromJson<AppData>(jsonString, type)
         } catch (e: Exception) {
             e.printStackTrace()
-            null
+            AppData(emptyList(), emptyList(), emptyList())
         }
     }
+
 
     // Saving Images
     fun copyImageToInternalStorage(uri: Uri): Uri? {

@@ -41,7 +41,7 @@ fun HomeScreen(
     onNavigateToRanking: () -> Unit,
     onNavigateToStatistics: () -> Unit
 ) {
-    // Zwei States für die Dialoge
+    // States for the Dialogues
     var showAddFolderDialog by remember { mutableStateOf(false) }
     var showAddFilmDialog by remember { mutableStateOf(false) }
 
@@ -80,12 +80,12 @@ fun HomeScreen(
             startDestination = "library",
             modifier = Modifier.padding(padding)
         ) {
-            composable("library") { /* Library bleibt Hauptansicht */ }
+            composable("library") { /* Library */ }
             composable("all_films") { AllFilmsScreen(viewModel) }
-            composable("wishlist") { /* Platzhalter */ }
+            composable("wishlist") { WishlistScreen(viewModel) }
         }
 
-        // ✅ Library-Ansicht mit FolderCards bleibt erhalten
+        // library view
         Column(modifier = Modifier.padding(padding)) {
             if (viewModel.folders.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
