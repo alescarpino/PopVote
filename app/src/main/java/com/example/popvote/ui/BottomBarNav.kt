@@ -25,7 +25,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 
-
 @Composable
 fun BottomBarNav(
     navController: NavHostController,
