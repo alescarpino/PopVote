@@ -25,10 +25,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 
+
 @Composable
 fun BottomBarNav(
     navController: NavHostController,
-    onAddClick: () -> Unit
+    onAddFolderClick: () -> Unit,
+    onAddFilmClick: () -> Unit
 ) {
     val items = listOf(
         BottomNavItem("Library", Icons.Filled.Folder, "library"),
@@ -55,17 +57,17 @@ fun BottomBarNav(
                                 .background(Color(0xFFE8EAF6))
                                 .shadow(3.dp, MaterialTheme.shapes.small)
                                 .padding(2.dp)
-                        } else {
-                            Modifier
-                        }
+                        } else Modifier
                     )
                 },
                 label = { Text(item.label) },
                 selected = selected,
                 onClick = {
                     if (item.route == "add") {
-                        if (currentRoute == "library") {
-                            onAddClick()
+                        when (currentRoute) {
+                            "library" -> onAddFolderClick()
+                            "all_films" -> onAddFilmClick()
+                            else -> {}
                         }
                     } else {
                         navController.navigate(item.route) {

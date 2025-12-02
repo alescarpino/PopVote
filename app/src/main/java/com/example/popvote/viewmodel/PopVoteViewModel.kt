@@ -17,6 +17,9 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
     private val _folders = mutableStateListOf<Folder>()
     val folders: List<Folder> get() = _folders
 
+    private val _allFilms = mutableStateListOf<Film>()
+    val allFilms: List<Film> get() = _allFilms
+
     init {
         loadData()
     }
@@ -111,5 +114,30 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
     fun getFolder(id: String): Folder? {
         return _folders.find { it.id == id }
     }
+
+
+    fun addFilm(
+        title: String,
+        description: String,
+        genre: Genre,
+        rating: Int,
+        duration: Int,
+        imageUri: Uri?
+    ) {
+        val savedUri = imageUri?.let { storageManager.copyImageToInternalStorage(it) }
+        val newFilm = Film(
+            title = title,
+            description = description,
+            genre = genre,
+            rating = rating,
+            duration = duration,
+            imageUri = savedUri
+        )
+
+        _allFilms.add(newFilm)
+        saveData()
+    }
+
+
 }
 

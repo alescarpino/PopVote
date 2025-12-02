@@ -32,6 +32,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -40,9 +41,11 @@ fun HomeScreen(
     onNavigateToRanking: () -> Unit,
     onNavigateToStatistics: () -> Unit
 ) {
-    var showAddDialog by remember { mutableStateOf(false) }
-    val tabNavController = rememberNavController()
+    // Zwei States für die Dialoge
+    var showAddFolderDialog by remember { mutableStateOf(false) }
+    var showAddFilmDialog by remember { mutableStateOf(false) }
 
+    val tabNavController = rememberNavController()
     val navBackStackEntry by tabNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "library"
 
@@ -67,20 +70,22 @@ fun HomeScreen(
         bottomBar = {
             BottomBarNav(
                 navController = tabNavController,
-                onAddClick = { showAddDialog = true }
+                onAddFolderClick = { showAddFolderDialog = true },
+                onAddFilmClick = { showAddFilmDialog = true }
             )
-        },
+        }
     ) { padding ->
         NavHost(
             navController = tabNavController,
             startDestination = "library",
             modifier = Modifier.padding(padding)
         ) {
-            composable("library") { /* Library-content */ }
+            composable("library") { /* Library bleibt Hauptansicht */ }
             composable("all_films") { AllFilmsScreen(viewModel) }
-            composable("wishlist") { /* Placeholder */ }
+            composable("wishlist") { /* Platzhalter */ }
         }
 
+        // ✅ Library-Ansicht mit FolderCards bleibt erhalten
         Column(modifier = Modifier.padding(padding)) {
             if (viewModel.folders.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -106,16 +111,29 @@ fun HomeScreen(
         }
     }
 
-    if (showAddDialog) {
-        AddGenreDialog(
-            onDismiss = { showAddDialog = false },
+    // ✅ Folder-Dialog
+    if (showAddFolderDialog) {
+        AddFolderDialog(
+            onDismiss = { showAddFolderDialog = false },
             onConfirm = { name, uri ->
                 viewModel.addFolder(name, uri)
-                showAddDialog = false
+                showAddFolderDialog = false
+            }
+        )
+    }
+
+
+    if (showAddFilmDialog) {
+        AddFilmDialog(
+            onDismiss = { showAddFilmDialog = false },
+            onConfirm = { title, desc, genre, rating, duration, uri ->
+                viewModel.addFilm(title, desc, genre, rating, duration, uri)
+                showAddFilmDialog = false
             }
         )
     }
 }
+
 
 @Composable
 fun FolderCard(
@@ -174,7 +192,7 @@ fun FolderCard(
 }
 
 @Composable
-fun AddGenreDialog(onDismiss: () -> Unit, onConfirm: (String, Uri?) -> Unit) {
+fun AddFolderDialog(onDismiss: () -> Unit, onConfirm: (String, Uri?) -> Unit) {
     var name by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
