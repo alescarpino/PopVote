@@ -20,7 +20,6 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
 
     private val _allFilms = mutableStateListOf<Film>()
     val allFilms: List<Film> get() = _allFilms
-
     private val _wishlist = mutableStateListOf<Wish>()
     val wishlist: List<Wish> get() = _wishlist
 
@@ -43,6 +42,10 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
     private fun saveData() {
         storageManager.saveAll(_folders.toList(), _allFilms.toList(), _wishlist.toList())
 
+    }
+
+    fun generateId(): String {
+        return java.util.UUID.randomUUID().toString()
     }
 
     fun addFolder(name: String, imageUri: Uri?) {
@@ -97,17 +100,14 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
             .sortedByDescending { it.rating }
     }
 
-    fun getAllFilmsAlphabetical(): List<Film> {
-        return _folders.flatMap { it.films }
-            .sortedBy { it.title.lowercase() }
-    }
-
     fun getFolder(id: String): Folder? {
         return _folders.find { it.id == id }
     }
 
 
+
     fun addFilm(
+        id: String,
         title: String,
         description: String,
         genre: Genre,
@@ -116,18 +116,11 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
         imageUri: Uri?
     ) {
         val savedUri = imageUri?.let { storageManager.copyImageToInternalStorage(it) }
-        val newFilm = Film(
-            title = title,
-            description = description,
-            genre = genre,
-            rating = rating,
-            duration = duration,
-            imageUri = savedUri
-        )
-
+        val newFilm = Film(id,title, description, genre, rating, duration, savedUri)
         _allFilms.add(newFilm)
         saveData()
     }
+
 
     fun addFilmToWishlist(
         title: String,
