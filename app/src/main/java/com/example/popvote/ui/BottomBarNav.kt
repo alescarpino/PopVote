@@ -29,7 +29,8 @@ import androidx.compose.foundation.layout.padding
 fun BottomBarNav(
     navController: NavHostController,
     onAddFolderClick: () -> Unit,
-    onAddFilmClick: () -> Unit
+    onAddFilmClick: () -> Unit,
+    onAddWishClick: () -> Unit
 ) {
     val items = listOf(
         BottomNavItem("Library", Icons.Filled.Folder, "library"),
@@ -66,7 +67,7 @@ fun BottomBarNav(
                         when (currentRoute) {
                             "library" -> onAddFolderClick()
                             "all_films" -> onAddFilmClick()
-                            else -> {}
+                            else -> {onAddWishClick()}
                         }
                     } else {
                         navController.navigate(item.route) {

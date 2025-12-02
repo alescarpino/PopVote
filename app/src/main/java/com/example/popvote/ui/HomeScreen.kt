@@ -44,6 +44,7 @@ fun HomeScreen(
     // States for the Dialogues
     var showAddFolderDialog by remember { mutableStateOf(false) }
     var showAddFilmDialog by remember { mutableStateOf(false) }
+    var showAddWishDialog by remember { mutableStateOf(false) }
 
     val tabNavController = rememberNavController()
     val navBackStackEntry by tabNavController.currentBackStackEntryAsState()
@@ -71,7 +72,8 @@ fun HomeScreen(
             BottomBarNav(
                 navController = tabNavController,
                 onAddFolderClick = { showAddFolderDialog = true },
-                onAddFilmClick = { showAddFilmDialog = true }
+                onAddFilmClick = { showAddFilmDialog = true },
+                onAddWishClick = { showAddWishDialog = true },
             )
         }
     ) { padding ->
@@ -111,7 +113,6 @@ fun HomeScreen(
         }
     }
 
-    // ✅ Folder-Dialog
     if (showAddFolderDialog) {
         AddFolderDialog(
             onDismiss = { showAddFolderDialog = false },
@@ -129,6 +130,16 @@ fun HomeScreen(
             onConfirm = { title, desc, genre, rating, duration, uri ->
                 viewModel.addFilm(title, desc, genre, rating, duration, uri)
                 showAddFilmDialog = false
+            }
+        )
+    }
+
+    if (showAddWishDialog) {
+        AddWishDialog(
+            onDismiss = { showAddWishDialog = false },
+            onConfirm = { title, desc, genre, duration, uri ->
+                viewModel.addFilmToWishlist(title, desc, genre, duration, uri)
+                showAddWishDialog = false
             }
         )
     }

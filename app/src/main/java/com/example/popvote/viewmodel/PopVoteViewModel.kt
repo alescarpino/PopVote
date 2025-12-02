@@ -9,6 +9,7 @@ import com.example.popvote.data.StorageManager
 import com.example.popvote.model.Film
 import com.example.popvote.model.Folder
 import com.example.popvote.model.Genre
+import com.example.popvote.model.Wish
 import java.util.UUID
 
 class PopVoteViewModel(application: Application) : AndroidViewModel(application) {
@@ -20,8 +21,8 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
     private val _allFilms = mutableStateListOf<Film>()
     val allFilms: List<Film> get() = _allFilms
 
-    private val _wishlist = mutableStateListOf<Film>()
-    val wishlist: List<Film> get() = _wishlist
+    private val _wishlist = mutableStateListOf<Wish>()
+    val wishlist: List<Wish> get() = _wishlist
 
     init {
         loadData()
@@ -128,13 +129,29 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
         saveData()
     }
 
-    fun addFilmToWishlist(film: Film) {
-        _wishlist.add(film)
+    fun addFilmToWishlist(
+        title: String,
+        description: String,
+        genre: Genre,
+        duration: Int,
+        imageUri: Uri?
+    ) {
+        val savedUri = imageUri?.let { storageManager.copyImageToInternalStorage(it) }
+        val wish = Wish(
+            title = title,
+            description = description,
+            genre = genre,
+            duration = duration,
+            imageUri = savedUri
+        )
+
+        _wishlist.add(wish)
         saveData()
     }
 
-    fun removeFilmFromWishlist(film: Film) {
-        _wishlist.remove(film)
+
+    fun removeFilmFromWishlist(wish: Wish) {
+        _wishlist.remove(wish)
         saveData()
     }
 }

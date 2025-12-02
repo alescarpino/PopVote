@@ -75,7 +75,7 @@ fun FolderDetailScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(folder.films) { film ->
-                WishListFilmCard(
+                FilmCard(
                     film = film,
                     onDelete = { viewModel.deleteFilmFromFolder(folderId, film) }
                 )
@@ -137,7 +137,7 @@ fun FilmCard(
                     maxLines = 2
                 )
 
-                // Genre-Anzeige
+                // Genre
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Genre: ${film.genre.name}",
@@ -145,7 +145,6 @@ fun FilmCard(
                     color = Color(0xFF6D6D6D)
                 )
 
-                // Bewertung mit Sternen
                 Spacer(modifier = Modifier.height(4.dp))
                 Row {
                     repeat(5) { index ->

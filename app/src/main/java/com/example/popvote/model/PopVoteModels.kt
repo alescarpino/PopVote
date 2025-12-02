@@ -33,5 +33,14 @@ enum class Genre {
 data class AppData(
     val folders: List<Folder>,
     val allFilms: List<Film>,
-    val wishlist: List<Film>
+    val wishlist: List<Wish>
+)
+
+data class Wish(
+    val id: String = UUID.randomUUID().toString(),
+    val title: String,
+    val description: String,
+    val genre: Genre, // Dropdown
+    val duration: Int,
+    val imageUri: Uri? = null // film photo
 )

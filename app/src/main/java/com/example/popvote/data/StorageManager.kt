@@ -5,6 +5,7 @@ import android.net.Uri
 import com.example.popvote.model.AppData
 import com.example.popvote.model.Film
 import com.example.popvote.model.Folder
+import com.example.popvote.model.Wish
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
@@ -15,7 +16,7 @@ class StorageManager(private val context: Context) {
     private val fileName = "popvote_data.json"
     // saving datas
 
-    fun saveAll(folders: List<Folder>, allFilms: List<Film>,wishlist:List<Film>) {
+    fun saveAll(folders: List<Folder>, allFilms: List<Film>,wishlist:List<Wish>) {
         val appData = AppData(folders, allFilms, wishlist)
         val jsonString = gson.toJson(appData)
 
