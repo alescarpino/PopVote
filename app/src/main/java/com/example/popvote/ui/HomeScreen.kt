@@ -128,7 +128,7 @@ fun HomeScreen(
         AddFilmDialog(
             onDismiss = { showAddFilmDialog = false },
             onConfirm = { title, desc, genre, rating, duration, uri ->
-                viewModel.addFilm(title, desc, genre, rating, duration, uri)
+                viewModel.addFilm(id = viewModel.generateId(), title, desc, genre, rating, duration, uri)
                 showAddFilmDialog = false
             }
         )

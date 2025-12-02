@@ -27,8 +27,7 @@ import com.example.popvote.viewmodel.PopVoteViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllFilmsScreen(viewModel: PopVoteViewModel) {
-    val allFilms = viewModel.getAllFilmsAlphabetical()
-
+val allFilms = viewModel.allFilms.sortedBy { it.title.lowercase() }
     Scaffold(
     ) { padding ->
         if (allFilms.isEmpty()) {
