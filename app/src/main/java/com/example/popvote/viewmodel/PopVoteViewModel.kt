@@ -17,38 +17,31 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
     private val _folders = mutableStateListOf<Folder>()
     val folders: List<Folder> get() = _folders
 
+    private val _allFilms = mutableStateListOf<Film>()
+    val allFilms: List<Film> get() = _allFilms
+
+    private val _wishlist = mutableStateListOf<Film>()
+    val wishlist: List<Film> get() = _wishlist
+
     init {
         loadData()
     }
 
+
     private fun loadData() {
+        val (folders, films, wishlistFilms) = storageManager.loadAll()
         _folders.clear()
-        _folders.add(
-            Folder(
-                name = "Favourites",
-                films = mutableListOf(
-                    Film(
-                        title = "The Ghost",
-                        description = "Very scary movie",
-                        genre = Genre.HORROR,
-                        rating = 4,
-                        duration = 110
-                    ),
-                    Film(
-                        title = "Zombies",
-                        description = "They eat brains",
-                        genre = Genre.SCI_FI,
-                        rating = 3,
-                        duration = 120
-                    )
-                )
-            )
-        )
-        _folders.add(Folder(name = "Fantasy"))
+        _folders.addAll(folders)
+        _allFilms.clear()
+        _allFilms.addAll(films)
+        _wishlist.clear()
+        _wishlist.addAll(wishlistFilms)
     }
 
+
     private fun saveData() {
-        storageManager.saveAll(_folders.toList(), emptyList())
+        storageManager.saveAll(_folders.toList(), _allFilms.toList(), _wishlist.toList())
+
     }
 
     fun addFolder(name: String, imageUri: Uri?) {
@@ -103,8 +96,46 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
             .sortedByDescending { it.rating }
     }
 
+    fun getAllFilmsAlphabetical(): List<Film> {
+        return _folders.flatMap { it.films }
+            .sortedBy { it.title.lowercase() }
+    }
+
     fun getFolder(id: String): Folder? {
         return _folders.find { it.id == id }
+    }
+
+
+    fun addFilm(
+        title: String,
+        description: String,
+        genre: Genre,
+        rating: Int,
+        duration: Int,
+        imageUri: Uri?
+    ) {
+        val savedUri = imageUri?.let { storageManager.copyImageToInternalStorage(it) }
+        val newFilm = Film(
+            title = title,
+            description = description,
+            genre = genre,
+            rating = rating,
+            duration = duration,
+            imageUri = savedUri
+        )
+
+        _allFilms.add(newFilm)
+        saveData()
+    }
+
+    fun addFilmToWishlist(film: Film) {
+        _wishlist.add(film)
+        saveData()
+    }
+
+    fun removeFilmFromWishlist(film: Film) {
+        _wishlist.remove(film)
+        saveData()
     }
 }
 

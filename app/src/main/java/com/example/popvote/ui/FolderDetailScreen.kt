@@ -75,7 +75,7 @@ fun FolderDetailScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(folder.films) { film ->
-                FilmCard(
+                WishListFilmCard(
                     film = film,
                     onDelete = { viewModel.deleteFilmFromFolder(folderId, film) }
                 )

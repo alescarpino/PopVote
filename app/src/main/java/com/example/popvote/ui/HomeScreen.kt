@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -28,6 +27,11 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.popvote.model.Folder
 import com.example.popvote.viewmodel.PopVoteViewModel
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +41,13 @@ fun HomeScreen(
     onNavigateToRanking: () -> Unit,
     onNavigateToStatistics: () -> Unit
 ) {
-    var showAddDialog by remember { mutableStateOf(false) }
+    // States for the Dialogues
+    var showAddFolderDialog by remember { mutableStateOf(false) }
+    var showAddFilmDialog by remember { mutableStateOf(false) }
+
+    val tabNavController = rememberNavController()
+    val navBackStackEntry by tabNavController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route ?: "library"
 
     Scaffold(
         topBar = {
@@ -48,28 +58,34 @@ fun HomeScreen(
                     titleContentColor = Color.White
                 ),
                 actions = {
-                    // Bottone Classifica (Coppa)
                     IconButton(onClick = onNavigateToRanking) {
                         Icon(Icons.Default.EmojiEvents, contentDescription = "Ranking", tint = Color.Yellow)
                     }
-
-                    // Statistics-Button
                     IconButton(onClick = onNavigateToStatistics) {
                         Icon(Icons.Default.BarChart, contentDescription = "Statistics", tint = Color.Green)
                     }
-
                 }
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddDialog = true },
-                containerColor = Color(0xFF03DAC5)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Genre")
-            }
+        bottomBar = {
+            BottomBarNav(
+                navController = tabNavController,
+                onAddFolderClick = { showAddFolderDialog = true },
+                onAddFilmClick = { showAddFilmDialog = true }
+            )
         }
     ) { padding ->
+        NavHost(
+            navController = tabNavController,
+            startDestination = "library",
+            modifier = Modifier.padding(padding)
+        ) {
+            composable("library") { /* Library */ }
+            composable("all_films") { AllFilmsScreen(viewModel) }
+            composable("wishlist") { WishlistScreen(viewModel) }
+        }
+
+        // library view
         Column(modifier = Modifier.padding(padding)) {
             if (viewModel.folders.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -83,8 +99,9 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(viewModel.folders) { genre ->
-                        GenreCard(
+                        FolderCard(
                             folder = genre,
+                            currentRoute = currentRoute,
                             onClick = { onNavigateToGenre(genre.id) },
                             onDelete = { viewModel.deleteFolder(genre) }
                         )
@@ -94,69 +111,88 @@ fun HomeScreen(
         }
     }
 
-    if (showAddDialog) {
-        AddGenreDialog(
-            onDismiss = { showAddDialog = false },
+    // ✅ Folder-Dialog
+    if (showAddFolderDialog) {
+        AddFolderDialog(
+            onDismiss = { showAddFolderDialog = false },
             onConfirm = { name, uri ->
                 viewModel.addFolder(name, uri)
-                showAddDialog = false
+                showAddFolderDialog = false
+            }
+        )
+    }
+
+
+    if (showAddFilmDialog) {
+        AddFilmDialog(
+            onDismiss = { showAddFilmDialog = false },
+            onConfirm = { title, desc, genre, rating, duration, uri ->
+                viewModel.addFilm(title, desc, genre, rating, duration, uri)
+                showAddFilmDialog = false
             }
         )
     }
 }
 
+
 @Composable
-fun GenreCard(folder: Folder, onClick: () -> Unit, onDelete: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(180.dp)
-            .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Immagine di sfondo o colore default
-            if (folder.imageUri != null) {
-                AsyncImage(
-                    model = folder.imageUri,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+fun FolderCard(
+    folder: Folder,
+    currentRoute: String,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
+    if (currentRoute == "library") {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .clickable { onClick() },
+            elevation = CardDefaults.cardElevation(4.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (folder.imageUri != null) {
+                    AsyncImage(
+                        model = folder.imageUri,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f))
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFE0E0E0))
+                    )
+                }
+
+                Text(
+                    text = folder.name,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (folder.imageUri != null) Color.White else Color.Black,
+                    modifier = Modifier.align(Alignment.Center)
                 )
-                // Overlay scuro per leggere il testo
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.3f)))
-            } else {
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFE0E0E0)))
-            }
 
-            // Nome Genere
-            Text(
-                text = folder.name,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (folder.imageUri != null) Color.White else Color.Black,
-                modifier = Modifier
-                    .align(Alignment.Center)
-            )
-
-            // Bottone elimina
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier.align(Alignment.TopEnd)
-            ) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                }
             }
         }
     }
 }
 
 @Composable
-fun AddGenreDialog(onDismiss: () -> Unit, onConfirm: (String, Uri?) -> Unit) {
+fun AddFolderDialog(onDismiss: () -> Unit, onConfirm: (String, Uri?) -> Unit) {
     var name by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
