@@ -137,14 +137,65 @@ fun HomeScreen(
     if (showAddWishDialog) {
         AddWishDialog(
             onDismiss = { showAddWishDialog = false },
-            onConfirm = { title, desc, genre, duration, uri ->
-                viewModel.addFilmToWishlist(title, desc, genre, duration, uri)
+            onConfirm = { title,uri ->
+                viewModel.addFilmToWishlist(
+                    title = title,
+                    description = "", // Vuoto per ora
+                    genre = com.example.popvote.model.Genre.ACTION, // Default
+                    duration = 0, // 0 per ora
+                    imageUri = uri
+                )
                 showAddWishDialog = false
             }
         )
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddWishDialog(
+    onDismiss: () -> Unit,
+    //  removed desc, genre, duration from signature
+    onConfirm: (String, Uri?) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri -> selectedImageUri = uri }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Quick Wish ✨") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Title") }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // image button
+                Button(
+                    onClick = { launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (selectedImageUri == null) "Select Image (Optional)" else "Image Selected")
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { if (title.isNotEmpty()) onConfirm(title, selectedImageUri) }) {
+                Text("Add to Wishlist")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
 
 @Composable
 fun FolderCard(

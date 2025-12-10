@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.popvote.model.Folder
 import com.example.popvote.model.Genre
 import com.example.popvote.model.Wish
 import com.example.popvote.viewmodel.PopVoteViewModel
@@ -24,6 +25,7 @@ import com.example.popvote.viewmodel.PopVoteViewModel
 @Composable
 fun WishlistScreen(viewModel: PopVoteViewModel) {
     val wishlist = viewModel.wishlist
+    val userFolders = viewModel.folders // we take the folder created by the user
     var selectedWish by remember { mutableStateOf<Wish?>(null) }
     var showConvertDialog by remember { mutableStateOf(false) }
 
@@ -60,8 +62,10 @@ fun WishlistScreen(viewModel: PopVoteViewModel) {
 
 
         ConvertWishDialog(
+            userFolders = userFolders,
             onDismiss = { showConvertDialog = false },
-            onConfirm = { title, desc, genre, rating, duration, uri ->
+            //now the signature has folderID (which could be null)
+            onConfirm = { title, desc, genre,folderId, rating, duration, uri ->
                 // Film hinzufügen
                 viewModel.addFilm(
                     id = viewModel.generateId(),
@@ -72,6 +76,18 @@ fun WishlistScreen(viewModel: PopVoteViewModel) {
                     duration = duration,
                     imageUri = uri
                 )
+                // 2. SE è stata selezionata una cartella, aggiungi anche lì
+                if (folderId != null) {
+                    viewModel.addFilmToFolder(
+                        folderId = folderId,
+                        title = title,
+                        description = desc,
+                        genre = genre,
+                        rating = rating,
+                        duration = duration,
+                        imageUri = uri
+                    )
+                }
                 viewModel.removeFilmFromWishlist(selectedWish!!)
                 showConvertDialog = false
             },
@@ -79,7 +95,7 @@ fun WishlistScreen(viewModel: PopVoteViewModel) {
             initialDescription = selectedWish!!.description,
             initialGenre = selectedWish!!.genre,
             initialDuration = selectedWish!!.duration,
-            initialImageUri = selectedWish!!.imageUri
+            initialImageUri = selectedWish!!.imageUri,
         )
     }
 
@@ -210,15 +226,19 @@ fun AddWishDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConvertWishDialog(
+    userFolders: List<com.example.popvote.model.Folder>, //new folder list
     onDismiss: () -> Unit,
-    onConfirm: (String, String, Genre, Int, Int, Uri?) -> Unit,
+    onConfirm: (String, String, Genre,String?, Int, Int, Uri?) -> Unit,
     initialTitle: String = "",
     initialDescription: String = "",
     initialGenre: Genre = Genre.ACTION,
     initialRating: Int = 3,
     initialDuration: Int = 0,
-    initialImageUri: Uri? = null
+    initialImageUri: Uri? = null,
+
 ) {
+    var folderMenuExpanded by remember { mutableStateOf(false) }
+    var selectedFolder by remember { mutableStateOf<com.example.popvote.model.Folder?>(null) }
     var title by remember { mutableStateOf(initialTitle) }
     var description by remember { mutableStateOf(initialDescription) }
     var selectedGenre by remember { mutableStateOf(initialGenre) }
@@ -285,7 +305,46 @@ fun ConvertWishDialog(
                     }
                 }
 
+                //selection user folder
                 Spacer(modifier = Modifier.height(8.dp))
+                ExposedDropdownMenuBox(
+                    expanded = folderMenuExpanded,
+                    onExpandedChange = { folderMenuExpanded = !folderMenuExpanded }
+                ) {
+                    OutlinedTextField(
+                        readOnly = true,
+                        // if null shows "No Folder (All Films only)"
+                        value = selectedFolder?.name ?: "No Specific Folder",
+                        onValueChange = {},
+                        label = { Text("Add to Playlist? (Optional)") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = folderMenuExpanded) },
+                        modifier = Modifier.menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = folderMenuExpanded,
+                        onDismissRequest = { folderMenuExpanded = false }
+                    ) {
+
+                        DropdownMenuItem(
+                            text = { Text("No Specific Folder") },
+                            onClick = {
+                                selectedFolder = null
+                                folderMenuExpanded = false
+                            }
+                        )
+
+                        userFolders.forEach { folder ->
+                            DropdownMenuItem(
+                                text = { Text(folder.name) },
+                                onClick = {
+                                    selectedFolder = folder
+                                    folderMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
 
                 Text("Rating: $rating/5")
 
@@ -336,9 +395,11 @@ fun ConvertWishDialog(
                             title,
                             description,
                             selectedGenre,
+                            selectedFolder?.id,
                             rating,
                             duration,
                             selectedImageUri
+
                         )
                     }
                 }

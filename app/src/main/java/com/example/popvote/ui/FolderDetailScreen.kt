@@ -40,7 +40,6 @@ fun FolderDetailScreen(
     onBack: () -> Unit
 ) {
     val folder = viewModel.getFolder(folderId)
-    var showAddFilmDialog by remember { mutableStateOf(false) }
 
     if (folder == null) {
         Text("Genre not found")
@@ -59,14 +58,6 @@ fun FolderDetailScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFBB86FC))
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddFilmDialog = true },
-                containerColor = Color(0xFF03DAC5)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Film")
-            }
-        }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -83,15 +74,6 @@ fun FolderDetailScreen(
         }
     }
 
-    if (showAddFilmDialog) {
-        AddFilmDialog(
-            onDismiss = { showAddFilmDialog = false },
-            onConfirm = { title, desc, genre, rating, duration, uri ->
-                viewModel.addFilmToFolder(folderId, title, desc, genre, rating, duration, uri)
-                showAddFilmDialog = false
-            }
-        )
-    }
 }
 
 @Composable
