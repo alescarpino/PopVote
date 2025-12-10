@@ -30,16 +30,6 @@ fun AllFilmsScreen(viewModel: PopVoteViewModel) {
 val allFilms = viewModel.allFilms.sortedBy { it.title.lowercase() }
     Scaffold(
     ) { padding ->
-        if (allFilms.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No films yet. Add one!", color = Color.Gray)
-            }
-        } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -51,7 +41,7 @@ val allFilms = viewModel.allFilms.sortedBy { it.title.lowercase() }
                     FilmRow(film)
                 }
             }
-        }
+
     }
 
     }

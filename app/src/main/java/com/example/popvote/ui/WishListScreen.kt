@@ -28,19 +28,6 @@ fun WishlistScreen(viewModel: PopVoteViewModel) {
     val userFolders = viewModel.folders // we take the folder created by the user
     var selectedWish by remember { mutableStateOf<Wish?>(null) }
     var showConvertDialog by remember { mutableStateOf(false) }
-
-    if (wishlist.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Your wishlist is empty!",
-                color = Color.Gray,
-                fontSize = 18.sp
-            )
-        }
-    } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
@@ -57,7 +44,7 @@ fun WishlistScreen(viewModel: PopVoteViewModel) {
                 )
             }
         }
-    }
+
     if (showConvertDialog && selectedWish != null) {
 
 

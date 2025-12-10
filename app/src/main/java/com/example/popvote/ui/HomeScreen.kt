@@ -89,11 +89,6 @@ fun HomeScreen(
 
         // library view
         Column(modifier = Modifier.padding(padding)) {
-            if (viewModel.folders.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No genres yet. Add one!", color = Color.Gray)
-                }
-            } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     contentPadding = PaddingValues(16.dp),
@@ -109,7 +104,7 @@ fun HomeScreen(
                         )
                     }
                 }
-            }
+
         }
     }
 
