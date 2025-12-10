@@ -96,8 +96,7 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun getAllFilmsRanked(): List<Film> {
-        return _allFilms.flatMap { it.films }
-            .sortedByDescending { it.rating }
+        return _allFilms.sortedByDescending { it.rating }
     }
 
     fun getFolder(id: String): Folder? {
