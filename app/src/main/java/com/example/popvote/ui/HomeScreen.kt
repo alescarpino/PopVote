@@ -42,6 +42,7 @@ fun HomeScreen(
     onNavigateToStatistics: () -> Unit
 ) {
     // States for the Dialogues
+    val folders = viewModel.folders
     var showAddFolderDialog by remember { mutableStateOf(false) }
     var showAddFilmDialog by remember { mutableStateOf(false) }
     var showAddWishDialog by remember { mutableStateOf(false) }
@@ -121,9 +122,15 @@ fun HomeScreen(
 
     if (showAddFilmDialog) {
         AddFilmDialog(
+            userFolders = folders,
             onDismiss = { showAddFilmDialog = false },
-            onConfirm = { title, desc, genre, rating, duration, uri ->
+            onConfirm = { title, desc, genre,folderId, rating, duration, uri ->
+
                 viewModel.addFilm(id = viewModel.generateId(), title, desc, genre, rating, duration, uri)
+                // if the user choose a folder, save the film there
+                if (folderId != null) {
+                    viewModel.addFilmToFolder(folderId, title, desc, genre, rating, duration, uri)
+                }
                 showAddFilmDialog = false
             }
         )
@@ -253,7 +260,7 @@ fun AddFolderDialog(onDismiss: () -> Unit, onConfirm: (String, Uri?) -> Unit) {
     var name by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Launcher per la galleria
+    //gallery launcher
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri -> selectedImageUri = uri }
@@ -287,5 +294,118 @@ fun AddFolderDialog(onDismiss: () -> Unit, onConfirm: (String, Uri?) -> Unit) {
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancel") }
         }
+    )
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddFilmDialog(
+    userFolders: List<Folder>, // Receive the folders
+    onDismiss: () -> Unit,
+
+    onConfirm: (String, String, com.example.popvote.model.Genre, String?, Int, Int, android.net.Uri?) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var selectedGenre by remember { mutableStateOf(com.example.popvote.model.Genre.ACTION) }
+    var rating by remember { mutableStateOf(3) }
+    var durationText by remember { mutableStateOf("115") }
+    var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+
+    var genreMenuExpanded by remember { mutableStateOf(false) }
+    var folderMenuExpanded by remember { mutableStateOf(false) }
+    var selectedFolder by remember { mutableStateOf<Folder?>(null) }
+
+    val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
+    ) { uri -> selectedImageUri = uri }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Nuovo Film") },
+        text = {
+            Column {
+                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Titolo") })
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Descrizione") })
+                Spacer(modifier = Modifier.height(8.dp))
+
+
+                ExposedDropdownMenuBox(
+                    expanded = genreMenuExpanded,
+                    onExpandedChange = { genreMenuExpanded = !genreMenuExpanded }
+                ) {
+                    OutlinedTextField(
+                        readOnly = true,
+                        value = selectedGenre.name,
+                        onValueChange = {},
+                        label = { Text("Genere") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genreMenuExpanded) },
+                        modifier = Modifier.menuAnchor()
+                    )
+                    ExposedDropdownMenu(expanded = genreMenuExpanded, onDismissRequest = { genreMenuExpanded = false }) {
+                        com.example.popvote.model.Genre.entries.forEach { genre ->
+                            DropdownMenuItem(
+                                text = { Text(genre.name) },
+                                onClick = { selectedGenre = genre; genreMenuExpanded = false }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+
+                ExposedDropdownMenuBox(
+                    expanded = folderMenuExpanded,
+                    onExpandedChange = { folderMenuExpanded = !folderMenuExpanded }
+                ) {
+                    OutlinedTextField(
+                        readOnly = true,
+                        value = selectedFolder?.name ?: "Nessuna (Solo All Films)",
+                        onValueChange = {},
+                        label = { Text("Cartella (Opzionale)") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = folderMenuExpanded) },
+                        modifier = Modifier.menuAnchor()
+                    )
+                    ExposedDropdownMenu(expanded = folderMenuExpanded, onDismissRequest = { folderMenuExpanded = false }) {
+                        DropdownMenuItem(
+                            text = { Text("Nessuna Cartella") },
+                            onClick = { selectedFolder = null; folderMenuExpanded = false }
+                        )
+                        userFolders.forEach { folder ->
+                            DropdownMenuItem(
+                                text = { Text(folder.name) },
+                                onClick = { selectedFolder = folder; folderMenuExpanded = false }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Voto: $rating/5")
+                Slider(value = rating.toFloat(), onValueChange = { rating = it.toInt() }, valueRange = 1f..5f, steps = 3)
+
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(value = durationText, onValueChange = { durationText = it.filter { ch -> ch.isDigit() } }, label = { Text("Durata (min)") }, keyboardOptions = androidx.compose.foundation.text.KeyboardOptions.Default.copy(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number))
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = { launcher.launch(androidx.activity.result.PickVisualMediaRequest(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
+                    Text(if (selectedImageUri == null) "Scegli Foto" else "Foto OK")
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                val duration = durationText.toIntOrNull() ?: 0
+                if (title.isNotEmpty() && duration > 0) {
+
+                    onConfirm(title, description, selectedGenre, selectedFolder?.id, rating, duration, selectedImageUri)
+                }
+            }) {
+                Text("Salva")
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Annulla") } }
     )
 }
