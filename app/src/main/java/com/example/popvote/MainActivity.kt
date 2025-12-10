@@ -17,6 +17,7 @@ import com.example.popvote.ui.HomeScreen
 import com.example.popvote.ui.RankingScreen
 import com.example.popvote.ui.StatisticsScreen
 import com.example.popvote.viewmodel.PopVoteViewModel
+import com.example.popvote.ui.WishlistScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +49,14 @@ fun PopVoteApp() {
                 onNavigateToGenre = { genreId -> navController.navigate("genre/$genreId") },
                 onNavigateToRanking = { navController.navigate("ranking") },
                 onNavigateToStatistics = { navController.navigate("statistics") },
+                onNavigateToWishlist = { navController.navigate("wishlist") }
+            )
+
+        }
+        composable("wishlist") {
+            WishlistScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
             )
         }
 
