@@ -19,6 +19,7 @@ import com.example.popvote.ui.StatisticsScreen
 import com.example.popvote.viewmodel.PopVoteViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.popvote.ui.AllFilmsScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -96,5 +97,17 @@ fun PopVoteApp() {
             )
 
         }
+
+        // All films route: shows the full list of films and lets you tap to open details
+        composable("all_films") {
+            AllFilmsScreen(
+                viewModel = viewModel,
+                onFilmClick = { filmId ->
+                    // Navigate to the film details route by id
+                    navController.navigate("film/$filmId")
+                }
+            )
+        }
+
     }
 }

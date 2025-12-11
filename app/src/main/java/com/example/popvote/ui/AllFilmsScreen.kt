@@ -2,6 +2,7 @@
 package com.example.popvote.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,7 +26,8 @@ import com.example.popvote.viewmodel.PopVoteViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AllFilmsScreen(viewModel: PopVoteViewModel) {
+
+fun AllFilmsScreen(viewModel: PopVoteViewModel, onFilmClick: (String) -> Unit) {
 
     val allFilms = viewModel.allFilms
 
@@ -84,7 +86,7 @@ fun AllFilmsScreen(viewModel: PopVoteViewModel) {
                 items = filteredFilms,
                 key = { it.id }
             ) { film ->
-                FilmRow(film)
+                FilmRow(film,onClick = { onFilmClick(film.id) })
             }
 
             if (filteredFilms.isEmpty()) {
@@ -104,11 +106,12 @@ fun AllFilmsScreen(viewModel: PopVoteViewModel) {
 }
 
 @Composable
-fun FilmRow(film: Film) {
+fun FilmRow(film: Film, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp),
+            .height(100.dp)
+            .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
