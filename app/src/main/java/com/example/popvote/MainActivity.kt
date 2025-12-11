@@ -17,6 +17,9 @@ import com.example.popvote.ui.HomeScreen
 import com.example.popvote.ui.RankingScreen
 import com.example.popvote.ui.StatisticsScreen
 import com.example.popvote.viewmodel.PopVoteViewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,6 +78,23 @@ fun PopVoteApp() {
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() }
             )
+        }
+
+        //Film detail route (navigate by film id)
+        composable(
+            route = "film/{filmId}",
+            arguments = listOf(navArgument("filmId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            // Read the filmId from the route arguments
+            val filmId = backStackEntry.arguments?.getString("filmId") ?: return@composable
+
+            // Show the detail screen
+            FilmDetailScreen(
+                viewModel = viewModel,
+                filmId = filmId,
+                onBack = { navController.popBackStack() }
+            )
+
         }
     }
 }
