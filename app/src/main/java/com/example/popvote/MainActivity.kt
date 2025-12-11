@@ -20,6 +20,7 @@ import com.example.popvote.viewmodel.PopVoteViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.popvote.ui.AllFilmsScreen
+import com.example.popvote.ui.FilmDetailScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -62,7 +63,8 @@ fun PopVoteApp() {
                 FolderDetailScreen(
                     folderId = folderId,
                     viewModel = viewModel,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onFilmClick = { filmId -> navController.navigate("film/$filmId") },
                 )
             }
         }

@@ -179,26 +179,44 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
      * - Add it to the target folder.
      * Film id stays the same.
      */
-    fun moveFilmToFolder(filmId: String, targetFolderId: String) {
-        val target = _folders.find { it.id == targetFolderId } ?: return
-        val film = getFilmById(filmId) ?: return
+    enum class MoveResult {
+        Moved,
+        NoChange,
+        SourceNotFound,
+        TargetNotFound,
+        FilmNotFound,
+        Error
+    }
+    fun moveFilmToFolder(filmId: String, targetFolderId: String): MoveResult {
+        // Find current folder containing film
+        val currentFolder = folders.firstOrNull { folder -> folder.films.any { it.id == filmId } }
+            ?: return MoveResult.SourceNotFound
 
-        // Remove from all folders
-        _folders.forEachIndexed { folderIndex, folder ->
-            if (folder.films.any { it.id == filmId }) {
-                val newFilms = folder.films.filterNot { it.id == filmId }
-                _folders[folderIndex] = folder.copy(films = newFilms as MutableList<Film>)
-            }
+        // Find target folder
+        val targetFolder = folders.firstOrNull { it.id == targetFolderId }
+            ?: return MoveResult.TargetNotFound
+
+        // If no change, early return
+        if (currentFolder.id == targetFolder.id) {
+            return MoveResult.NoChange
         }
 
-        // Add to target folder
-        val targetIndex = _folders.indexOf(target)
-        if (targetIndex != -1) {
-            val targetFilms = _folders[targetIndex].films.toMutableList().apply { add(film) }
-            _folders[targetIndex] = target.copy(films = targetFilms)
-        }
+        // Find film in current folder
+        val film = currentFolder.films.firstOrNull { it.id == filmId }
+            ?: return MoveResult.FilmNotFound
 
-        saveData()
+        // Perform move: remove from current, add to target
+        return try {
+            currentFolder.films.removeAll { it.id == filmId }
+            targetFolder.films.add(film)
+
+            // TODO: if you use StateFlow or Compose state, emit/update state here
+            // e.g., _foldersState.value = folders.deepCopy() or notify observers
+
+            MoveResult.Moved
+        } catch (t: Throwable) {
+            MoveResult.Error
+        }
     }
 
     fun getAllFilmsRanked(): List<Film> {
@@ -208,8 +226,6 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
     fun getFolder(id: String): Folder? {
         return _folders.find { it.id == id }
     }
-
-
 
     fun addFilm(
         id: String,
