@@ -144,13 +144,13 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
      */
     fun deleteFilm(filmId: String) {
         _allFilms.removeAll { it.id == filmId }
-
         _folders.forEachIndexed { folderIndex, folder ->
-            val newFilms = folder.films.filterNot { it.id == filmId }
+            val newFilms = folder.films.filterNot { it.id == filmId }.toMutableList()
             if (newFilms.size != folder.films.size) {
-                _folders[folderIndex] = folder.copy(films = newFilms as MutableList<Film>)
+                _folders[folderIndex] = folder.copy(films = newFilms)
             }
         }
+
 
         saveData()
     }
@@ -187,39 +187,56 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
         FilmNotFound,
         Error
     }
+
     fun moveFilmToFolder(filmId: String, targetFolderId: String): MoveResult {
-        // Find current folder containing film
-        val currentFolder = folders.firstOrNull { folder -> folder.films.any { it.id == filmId } }
-            ?: return MoveResult.SourceNotFound
+        // Find source folder index (the one that currently contains the film)
+        val sourceIndex = _folders.indexOfFirst { folder ->
+            folder.films.any { it.id == filmId }
+        }
+        if (sourceIndex == -1) return MoveResult.SourceNotFound
 
-        // Find target folder
-        val targetFolder = folders.firstOrNull { it.id == targetFolderId }
-            ?: return MoveResult.TargetNotFound
+        // Find target folder index
+        val targetIndex = _folders.indexOfFirst { it.id == targetFolderId }
+        if (targetIndex == -1) return MoveResult.TargetNotFound
 
-        // If no change, early return
-        if (currentFolder.id == targetFolder.id) {
+        // If source and target are the same, nothing to do
+        if (sourceIndex == targetIndex) return MoveResult.NoChange
+
+        val sourceFolder = _folders[sourceIndex]
+        val targetFolder = _folders[targetIndex]
+
+        // If target already contains the film, treat as no change to avoid duplicates
+        if (targetFolder.films.any { it.id == filmId }) {
             return MoveResult.NoChange
         }
 
-        // Find film in current folder
-        val film = currentFolder.films.firstOrNull { it.id == filmId }
-            ?: return MoveResult.FilmNotFound
+        // Get the film instance from the source folder
+        val film = sourceFolder.films.firstOrNull { it.id == filmId } ?: return MoveResult.FilmNotFound
 
-        // Perform move: remove from current, add to target
         return try {
-            currentFolder.films.removeAll { it.id == filmId }
-            targetFolder.films.add(film)
+            // Build new lists immutably
+            val sourceNewFilms = sourceFolder.films
+                .filterNot { it.id == filmId }
+                .toMutableList()
 
-            // TODO: if you use StateFlow or Compose state, emit/update state here
-            // e.g., _foldersState.value = folders.deepCopy() or notify observers
+            val targetNewFilms = targetFolder.films
+                .toMutableList()
+                .apply { add(film) }
+
+            // Write back copies (no in-place mutation of the original lists)
+            _folders[sourceIndex] = sourceFolder.copy(films = sourceNewFilms)
+            _folders[targetIndex] = targetFolder.copy(films = targetNewFilms)
+
+            // Persist/notify
+            saveData()
 
             MoveResult.Moved
-        } catch (t: Throwable) {
+        } catch (_: Throwable) {
             MoveResult.Error
         }
     }
 
-    fun getAllFilmsRanked(): List<Film> {
+        fun getAllFilmsRanked(): List<Film> {
         return _allFilms.sortedByDescending { it.rating }
     }
 

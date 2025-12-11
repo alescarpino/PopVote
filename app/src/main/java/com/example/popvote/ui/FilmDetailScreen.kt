@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import kotlinx.coroutines.launch
 import android.net.Uri
 import androidx.compose.runtime.saveable.Saver
+import com.example.popvote.model.Genre
 import com.example.popvote.viewmodel.PopVoteViewModel.MoveResult
 
 
@@ -93,11 +94,11 @@ fun FilmDetailScreen(
 
     // Genre (enum) + dropdown state
     var genreExpanded by rememberSaveable(filmId) { mutableStateOf(false) }
-    val genreOptions = remember { com.example.popvote.model.Genre.values().toList() }
+    val genreOptions = remember { Genre.entries }
     var genre by rememberSaveable(filmId) { mutableStateOf(film.genre) }
 
     // Rating (1..5)
-    var rating by rememberSaveable(filmId) { mutableStateOf(film.rating) }
+    var rating by rememberSaveable(filmId) { mutableIntStateOf(film.rating) }
 
     // Duration as text for validation
     var durationText by rememberSaveable(filmId) { mutableStateOf(film.duration.toString()) }
@@ -108,7 +109,7 @@ fun FilmDetailScreen(
 
 // Take the first folder (or null if there are no folders) as initial selection
     var targetFolderId: String? by rememberSaveable(filmId) {
-        mutableStateOf<String?>(folders.firstOrNull()?.id)
+        mutableStateOf(folders.firstOrNull()?.id)
     }
 
     // Snackbar + coroutine scope
@@ -171,33 +172,36 @@ fun FilmDetailScreen(
         moveDialogOpen = true
     }
 
+
+    // Handle "Move" confirmation by delegating to the ViewModel and showing a precise snackbar
     fun onMoveConfirm() {
-        // 1) ensure a target folder was selected
+        // 1) Ensure a target folder was selected
         val targetId = targetFolderId
         if (targetId == null) {
             scope.launch { snackbarHostState.showSnackbar("Please select a target folder.") }
             return
         }
 
-        // 2) delegate the actual move to the ViewModel
+        // 2) Delegate the move to the ViewModel; it returns a MoveResult explaining the outcome
         val result = viewModel.moveFilmToFolder(
             filmId = film.id,
             targetFolderId = targetId
         )
 
-        // 3) give feedback based on the outcome
+        // 3) Map the result to user-facing feedback
         scope.launch {
-            when (result) {
-                MoveResult.Moved -> snackbarHostState.showSnackbar("Film moved.")
-                MoveResult.NoChange -> snackbarHostState.showSnackbar("Film already in selected folder.")
-                MoveResult.SourceNotFound -> snackbarHostState.showSnackbar("Current folder not found.")
-                MoveResult.TargetNotFound -> snackbarHostState.showSnackbar("Target folder not found.")
-                MoveResult.FilmNotFound -> snackbarHostState.showSnackbar("Film not found in any folder.")
-                MoveResult.Error -> snackbarHostState.showSnackbar("Could not move film.")
+            val msg = when (result) {
+                MoveResult.Moved -> "Film moved."
+                MoveResult.NoChange -> "Film already in selected folder."
+                MoveResult.SourceNotFound -> "Current folder not found."
+                MoveResult.TargetNotFound -> "Target folder not found."
+                MoveResult.FilmNotFound -> "Film not found in any folder."
+                MoveResult.Error -> "Could not move film."
             }
+            snackbarHostState.showSnackbar(msg)
         }
 
-        // 4) close dialog in all cases (    // 4) close dialog in all cases (optional: only on success)
+        // 4) Close the    // 4) Close the dialog (you can keep it open on errors if you prefer)
         moveDialogOpen = false
     }
 

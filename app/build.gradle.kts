@@ -46,6 +46,16 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    buildFeatures {
+        compose = true
+    }
+
+    composeOptions {
+        // Compose Compiler Version explizit setzen (kompatibel zu AGP 8.6 / Kotlin 2.0.x)
+        kotlinCompilerExtensionVersion = "1.6.11"
+    }
+
 }
 
 dependencies {
@@ -72,7 +82,6 @@ dependencies {
 
 
     implementation("com.google.android.material:material:1.11.0")
-    implementation(libs.androidx.foundation)
 
 
     testImplementation("junit:junit:4.13.2")

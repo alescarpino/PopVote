@@ -84,7 +84,16 @@ fun HomeScreen(
             modifier = Modifier.padding(padding)
         ) {
             composable("library") { /* Library */ }
-            composable("all_films") { AllFilmsScreen(viewModel) }
+
+            composable(route = "all_films") {
+                AllFilmsScreen(
+                    viewModel = viewModel,
+                    onFilmClick = { filmId ->
+                        tabNavController.navigate("film_detail/$filmId")
+                    }
+                )
+            }
+
             composable("wishlist") { WishlistScreen(viewModel) }
         }
 
