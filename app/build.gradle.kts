@@ -46,6 +46,16 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    buildFeatures {
+        compose = true
+    }
+
+    composeOptions {
+        // Compose Compiler Version explizit setzen (kompatibel zu AGP 8.6 / Kotlin 2.0.x)
+        kotlinCompilerExtensionVersion = "1.6.11"
+    }
+
 }
 
 dependencies {
@@ -58,6 +68,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
+
 
     // graphic libraries
     implementation("androidx.compose.ui:ui")

@@ -45,7 +45,7 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun generateId(): String {
-        return java.util.UUID.randomUUID().toString()
+        return UUID.randomUUID().toString()
     }
 
     fun addFolder(name: String, imageUri: Uri?) {
@@ -95,15 +95,154 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
         saveData()
     }
 
-    fun getAllFilmsRanked(): List<Film> {
+
+    // Get a film by id from allFilms or any folder
+    fun getFilmById(id: String): Film? {
+        // First try allFilms
+        _allFilms.find { it.id == id }?.let { return it }
+        // Then search every folder
+        _folders.forEach { folder ->
+            folder.films.find { it.id == id }?.let { return it }
+        }
+        return null
+    }
+
+    /**
+     * Update a film across the app:
+     * - If the film exists in allFilms, replace it there.
+     * - If the film exists in any folder, replace it there too.
+     * This keeps data consistent even if the same film also lives in folders.
+     */
+    fun updateFilm(updated: Film) {
+        // Optionally copy the image into internal storage (align with your add methods)
+        val finalImageUri = updated.imageUri?.let { storageManager.copyImageToInternalStorage(it) } ?: updated.imageUri
+        val toWrite = updated.copy(imageUri = finalImageUri)
+
+        // Replace in allFilms
+        val idxAll = _allFilms.indexOfFirst { it.id == toWrite.id }
+        if (idxAll != -1) {
+            _allFilms[idxAll] = toWrite
+        }
+
+        // Replace in any folder that contains this film
+        _folders.forEachIndexed { folderIndex, folder ->
+            val filmIndex = folder.films.indexOfFirst { it.id == toWrite.id }
+            if (filmIndex != -1) {
+                val newFilms = folder.films.toMutableList()
+                newFilms[filmIndex] = toWrite
+                _folders[folderIndex] = folder.copy(films = newFilms)
+            }
+        }
+
+        saveData()
+    }
+
+    /**
+     * Delete a film everywhere:
+     * - Remove from allFilms.
+     * - Remove from any folder that contains it.
+     */
+    fun deleteFilm(filmId: String) {
+        _allFilms.removeAll { it.id == filmId }
+        _folders.forEachIndexed { folderIndex, folder ->
+            val newFilms = folder.films.filterNot { it.id == filmId }.toMutableList()
+            if (newFilms.size != folder.films.size) {
+                _folders[folderIndex] = folder.copy(films = newFilms)
+            }
+        }
+
+
+        saveData()
+    }
+
+    /**
+     * Add an existing film (by id) to a folder WITHOUT creating a new id.
+     * This avoids duplicates with different ids.
+     */
+    fun addExistingFilmToFolder(folderId: String, filmId: String) {
+        val folder = _folders.find { it.id == folderId } ?: return
+        val film = getFilmById(filmId) ?: return
+
+        // Don't add twice
+        if (folder.films.any { it.id == filmId }) return
+
+        val newFilms = folder.films.toMutableList().apply { add(film) }
+        val idx = _folders.indexOf(folder)
+        if (idx != -1) _folders[idx] = folder.copy(films = newFilms)
+
+        saveData()
+    }
+
+    /**
+     * Move a film to a different folder:
+     * - Remove it from any folder it currently lives in.
+     * - Add it to the target folder.
+     * Film id stays the same.
+     */
+    enum class MoveResult {
+        Moved,
+        NoChange,
+        SourceNotFound,
+        TargetNotFound,
+        FilmNotFound,
+        Error
+    }
+
+    fun moveFilmToFolder(filmId: String, targetFolderId: String): MoveResult {
+        // Find source folder index (the one that currently contains the film)
+        val sourceIndex = _folders.indexOfFirst { folder ->
+            folder.films.any { it.id == filmId }
+        }
+        if (sourceIndex == -1) return MoveResult.SourceNotFound
+
+        // Find target folder index
+        val targetIndex = _folders.indexOfFirst { it.id == targetFolderId }
+        if (targetIndex == -1) return MoveResult.TargetNotFound
+
+        // If source and target are the same, nothing to do
+        if (sourceIndex == targetIndex) return MoveResult.NoChange
+
+        val sourceFolder = _folders[sourceIndex]
+        val targetFolder = _folders[targetIndex]
+
+        // If target already contains the film, treat as no change to avoid duplicates
+        if (targetFolder.films.any { it.id == filmId }) {
+            return MoveResult.NoChange
+        }
+
+        // Get the film instance from the source folder
+        val film = sourceFolder.films.firstOrNull { it.id == filmId } ?: return MoveResult.FilmNotFound
+
+        return try {
+            // Build new lists immutably
+            val sourceNewFilms = sourceFolder.films
+                .filterNot { it.id == filmId }
+                .toMutableList()
+
+            val targetNewFilms = targetFolder.films
+                .toMutableList()
+                .apply { add(film) }
+
+            // Write back copies (no in-place mutation of the original lists)
+            _folders[sourceIndex] = sourceFolder.copy(films = sourceNewFilms)
+            _folders[targetIndex] = targetFolder.copy(films = targetNewFilms)
+
+            // Persist/notify
+            saveData()
+
+            MoveResult.Moved
+        } catch (_: Throwable) {
+            MoveResult.Error
+        }
+    }
+
+        fun getAllFilmsRanked(): List<Film> {
         return _allFilms.sortedByDescending { it.rating }
     }
 
     fun getFolder(id: String): Folder? {
         return _folders.find { it.id == id }
     }
-
-
 
     fun addFilm(
         id: String,
@@ -140,7 +279,6 @@ class PopVoteViewModel(application: Application) : AndroidViewModel(application)
         _wishlist.add(wish)
         saveData()
     }
-
 
     fun removeFilmFromWishlist(wish: Wish) {
         _wishlist.remove(wish)

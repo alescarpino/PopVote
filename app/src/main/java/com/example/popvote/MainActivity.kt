@@ -17,6 +17,11 @@ import com.example.popvote.ui.HomeScreen
 import com.example.popvote.ui.RankingScreen
 import com.example.popvote.ui.StatisticsScreen
 import com.example.popvote.viewmodel.PopVoteViewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.popvote.ui.AllFilmsScreen
+import com.example.popvote.ui.FilmDetailScreen
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,7 +63,8 @@ fun PopVoteApp() {
                 FolderDetailScreen(
                     folderId = folderId,
                     viewModel = viewModel,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onFilmClick = { filmId -> navController.navigate("film/$filmId") },
                 )
             }
         }
@@ -76,5 +82,34 @@ fun PopVoteApp() {
                 onBack = { navController.popBackStack() }
             )
         }
+
+        //Film detail route (navigate by film id)
+        composable(
+            route = "film/{filmId}",
+            arguments = listOf(navArgument("filmId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            // Read the filmId from the route arguments
+            val filmId = backStackEntry.arguments?.getString("filmId") ?: return@composable
+
+            // Show the detail screen
+            FilmDetailScreen(
+                viewModel = viewModel,
+                filmId = filmId,
+                onBack = { navController.popBackStack() }
+            )
+
+        }
+
+        // All films route: shows the full list of films and lets you tap to open details
+        composable("all_films") {
+            AllFilmsScreen(
+                viewModel = viewModel,
+                onFilmClick = { filmId ->
+                    // Navigate to the film details route by id
+                    navController.navigate("film/$filmId")
+                }
+            )
+        }
+
     }
 }

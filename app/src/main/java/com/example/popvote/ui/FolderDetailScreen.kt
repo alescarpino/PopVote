@@ -2,6 +2,7 @@
 package com.example.popvote.ui
 
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,7 +32,8 @@ import com.example.popvote.viewmodel.PopVoteViewModel
 fun FolderDetailScreen(
     folderId: String,
     viewModel: PopVoteViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onFilmClick: (String) -> Unit
 ) {
     val folder = viewModel.getFolder(folderId)
 
@@ -62,7 +64,8 @@ fun FolderDetailScreen(
             items(folder.films) { film ->
                 FilmCard(
                     film = film,
-                    onDelete = { viewModel.deleteFilmFromFolder(folderId, film) }
+                    onDelete = { viewModel.deleteFilmFromFolder(folderId, film) },
+                    onClick = { onFilmClick(film.id) }
                 )
             }
         }
@@ -73,10 +76,13 @@ fun FolderDetailScreen(
 @Composable
 fun FilmCard(
     film: Film,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(2.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
