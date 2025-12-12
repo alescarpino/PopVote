@@ -63,7 +63,7 @@ fun WishlistScreen(viewModel: PopVoteViewModel) {
                     duration = duration,
                     imageUri = uri
                 )
-                // 2. SE è stata selezionata una cartella, aggiungi anche lì
+                // 2. add there,if a floder is been selected
                 if (folderId != null) {
                     viewModel.addFilmToFolder(
                         folderId = folderId,

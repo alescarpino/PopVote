@@ -20,7 +20,7 @@ class StorageManager(private val context: Context) {
         val appData = AppData(folders, allFilms, wishlist)
         val jsonString = gson.toJson(appData)
 
-        // Scriviamo il file nella memoria privata dell'app
+        //writing the file in the  private memory of the app
         context.openFileOutput(fileName, Context.MODE_PRIVATE).use {
             it.write(jsonString.toByteArray())
         }
@@ -43,6 +43,8 @@ class StorageManager(private val context: Context) {
 
 
     // Saving Images
+    //takes the URI from the gallery, create a new address with the same datas,use the new
+    // address to paste the image, delete the temporary URI
     fun copyImageToInternalStorage(uri: Uri): Uri? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri)

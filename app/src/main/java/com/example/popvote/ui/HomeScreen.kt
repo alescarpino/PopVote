@@ -151,9 +151,9 @@ fun HomeScreen(
             onConfirm = { title,uri ->
                 viewModel.addFilmToWishlist(
                     title = title,
-                    description = "", // Vuoto per ora
+                    description = "", // empty at the beginning
                     genre = com.example.popvote.model.Genre.ACTION, // Default
-                    duration = 0, // 0 per ora
+                    duration = 0, // 0 default
                     imageUri = uri
                 )
                 showAddWishDialog = false
@@ -331,12 +331,12 @@ fun AddFilmDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nuovo Film") },
+        title = { Text("New Film") },
         text = {
             Column {
-                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Titolo") })
+                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title") })
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Descrizione") })
+                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") })
                 Spacer(modifier = Modifier.height(8.dp))
 
 
@@ -348,7 +348,7 @@ fun AddFilmDialog(
                         readOnly = true,
                         value = selectedGenre.name,
                         onValueChange = {},
-                        label = { Text("Genere") },
+                        label = { Text("Genre") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genreMenuExpanded) },
                         modifier = Modifier.menuAnchor()
                     )
@@ -371,15 +371,15 @@ fun AddFilmDialog(
                 ) {
                     OutlinedTextField(
                         readOnly = true,
-                        value = selectedFolder?.name ?: "Nessuna (Solo All Films)",
+                        value = selectedFolder?.name ?: "None (only All Films)",
                         onValueChange = {},
-                        label = { Text("Cartella (Opzionale)") },
+                        label = { Text("folder (Optional)") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = folderMenuExpanded) },
                         modifier = Modifier.menuAnchor()
                     )
                     ExposedDropdownMenu(expanded = folderMenuExpanded, onDismissRequest = { folderMenuExpanded = false }) {
                         DropdownMenuItem(
-                            text = { Text("Nessuna Cartella") },
+                            text = { Text("No specific folder") },
                             onClick = { selectedFolder = null; folderMenuExpanded = false }
                         )
                         userFolders.forEach { folder ->
@@ -392,15 +392,15 @@ fun AddFilmDialog(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Voto: $rating/5")
+                Text("Rating: $rating/5")
                 Slider(value = rating.toFloat(), onValueChange = { rating = it.toInt() }, valueRange = 1f..5f, steps = 3)
 
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = durationText, onValueChange = { durationText = it.filter { ch -> ch.isDigit() } }, label = { Text("Durata (min)") }, keyboardOptions = androidx.compose.foundation.text.KeyboardOptions.Default.copy(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number))
+                OutlinedTextField(value = durationText, onValueChange = { durationText = it.filter { ch -> ch.isDigit() } }, label = { Text("Duration (min)") }, keyboardOptions = androidx.compose.foundation.text.KeyboardOptions.Default.copy(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number))
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = { launcher.launch(androidx.activity.result.PickVisualMediaRequest(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
-                    Text(if (selectedImageUri == null) "Scegli Foto" else "Foto OK")
+                    Text(if (selectedImageUri == null) "choose photo" else "photo OK")
                 }
             }
         },
@@ -412,9 +412,9 @@ fun AddFilmDialog(
                     onConfirm(title, description, selectedGenre, selectedFolder?.id, rating, duration, selectedImageUri)
                 }
             }) {
-                Text("Salva")
+                Text("Save")
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Annulla") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
