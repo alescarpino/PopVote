@@ -54,7 +54,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("PopVote Genres", fontWeight = FontWeight.Bold) },
+                title = { Text("PopVote", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color(0xFF6200EE),
                     titleContentColor = Color.White
@@ -276,13 +276,13 @@ fun AddFolderDialog(onDismiss: () -> Unit, onConfirm: (String, Uri?) -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New Genre") },
+        title = { Text("New Folder") },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Genre Name") }
+                    label = { Text("Folder Name") }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
